@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spotify Weather App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .top-buttons {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .spotify-btn {
+      background: #1DB954;
+      color: white;
+    }
+
+    .search-btn {
+      background: #333;
+      color: white;
+    }
+
+    input {
+      width: 70%;
+      padding: 10px;
+      font-size: 16px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .search-bar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      margin-top: 25px;
+    }
+
+    .track {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .track a {
+      color: #1DB954;
+      text-decoration: none;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .weather-box {
+      background: #f0f4f8;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Spotify Weather Playlist Recommender</h1>
+
+    <div class="top-buttons">
+      <button class="spotify-btn" onclick="loginWithSpotify()">Login with Spotify</button>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="cityInput" placeholder="Enter a city" />
+      <button class="search-btn" onclick="getRecommendations()">Get Recommendations</button>
+    </div>
+
+    <div id="errorMessage" class="error"></div>
+
+    <div id="weatherSection" class="section"></div>
+    <div id="tracksSection" class="section"></div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "http://127.0.0.1:5001";
+
+    function loginWithSpotify() {
+      window.location.href = `${BACKEND_URL}/login`;
+    }
+
+    async function getRecommendations() {
+      const city = document.getElementById("cityInput").value.trim();
+      const errorMessage = document.getElementById("errorMessage");
+      const weatherSection = document.getElementById("weatherSection");
+      const tracksSection = document.getElementById("tracksSection");
+
+      errorMessage.textContent = "";
+      weatherSection.innerHTML = "";
+      tracksSection.innerHTML = "";
+
+      if (!city) {
+        errorMessage.textContent = "Please enter a city.";
+        return;
+      }
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/recommend?city=${encodeURIComponent(city)}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          errorMessage.textContent = data.error || "Something went wrong.";
+          return;
+        }
+
+        weatherSection.innerHTML = `
+          <div class="weather-box">
+            <h2>Weather in ${data.city}</h2>
+            <p><strong>Condition:</strong> ${data.condition}</p>
+            <p><strong>Spotify search used:</strong> ${data.query_used}</p>
+          </div>
+        `;
+
+        if (!data.tracks || data.tracks.length === 0) {
+          tracksSection.innerHTML = "<p>No tracks found.</p>";
+          return;
+        }
+
+        let tracksHtml = "<h2>Recommended Tracks</h2>";
+
+        data.tracks.forEach(track => {
+          tracksHtml += `
+            <div class="track">
+              <p><strong>${track.name}</strong> — ${track.artist}</p>
+              <p>Album: ${track.album}</p>
+              <a href="${track.spotify_url}" target="_blank">Open in Spotify</a>
+            </div>
+          `;
+        });
+
+        tracksSection.innerHTML = tracksHtml;
+      } catch (error) {
+        errorMessage.textContent = "Could not connect to the backend.";
+      }
+    }
+  </script>
+</body>
+</html>

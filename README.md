@@ -57,5 +57,11 @@ python app.py
 - Mobile-friendly UI
 - Save generated playlists to Spotify account
 
+## Notes for me
+next add a place to enter city to check weather for the city they are in
+next make the reccommendations actually personalized to the user
+next make sure /callback redirects back to the frontend page
+next fix recommendation logic the issue is either with spotify login and token scope or with the request endpoint try to test with postman next
+
 ## Author
 Kalyani Valath
